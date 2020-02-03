@@ -1,0 +1,82 @@
+<?php include($_SERVER['DOCUMENT_ROOT']. '/header.html'); ?>
+<section>
+	<div class="topImage" id="topimage">
+		<img name="topimage" src="/images/drip_coffee.jpg">
+	</div>
+</section>
+<section>
+
+	<div class="cofepic">
+		<h1>menu</h1>
+
+		<div class="cofepics">
+		<ul class="pictures">
+		<li class="pic pic1"><a href="pasta.html"><img src="/images/pasta.jpg"><div class="text">軽食</div></a></li>
+		<li class="pic"><a href="pasta.html"><img src="/images/coffee1.jpg"><div class="text">コーヒー</div></a></li>
+		<li class="pic"><a href="pasta.html"><img src="/images/cake.jpg"><div class="text">スイーツ</div></a></li>
+		</ul>
+		</div>
+	</div>
+</section>
+<section>
+<div class="infos">
+	<div class="info1">
+		<h1>News</h1>
+			<div class="info">
+			<ul>
+				<li>11月30日 コスタリカ入荷しました！</li>
+				<li>11月19日 コーヒーセミナー行います！</li>
+				<li>11月16日 パンケーキに新商品登場です!</li>
+				<li>11月10日 コロンビア入荷しました！</li>
+				<li>11月5日 スタッフ募集開始しました</li>
+			</ul>
+			</div>
+	</div>
+</div>
+</section>
+<section>
+	<div class="nmenus">
+		<h1>Night Pick Up</h1>
+		<div class="ulmenu">
+			<ul class="menue">
+			<li><a href="pasta.html"><img src="/images/houji.jpg"><div class="ntext">ほうじ茶ラテ</div></a></li>
+			<li><a href="pasta.html"><img src="/images/rum.jpg"><div class="ntext">ラム酒入りラテ</div></a></li>
+			<li><a href="pasta.html"><img src="/images/beer.jpg"><div class="ntext">beer</div></a></li>
+			<li><a href="pasta.html"><img src="/images/tapas.jpg"><div class="ntext">tapas</div></a></li>
+			</ul>
+		</div>
+	</div>
+</section>
+<section>
+	<h1 id="target">Have a great relax time here</h1>
+
+	<div class="enjyoy">
+		<img src="/images/coffee5.jpg">
+	</div>
+</section>
+<?php include($_SERVER['DOCUMENT_ROOT'] . '/footer.html'); ?>
+</div>
+
+<!-- <script type="text/javascript" src="/JS/top.js"></script> -->
+<script type="text/javascript">
+
+	var img = new Array("/images/drip_coffee.jpg","/images/coffee4.jpg","/images/coofee2.jpg");
+var num = -1;
+imgTimer();
+
+	function imgTimer() {
+	var t = document.getElementById('topimage');
+
+		if(num == 2) {
+			num = 0;
+		}else{
+			num++;
+		}
+		t.innerHTML = "<img src="+img[num]+">";
+
+		setTimeout("imgTimer()", 3000);
+	}
+</script>
+</body>
+</html>
+

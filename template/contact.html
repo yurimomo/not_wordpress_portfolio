@@ -1,0 +1,46 @@
+<?php
+session_start();
+
+// 戻るボタン以外ならデータを消す
+if(!$_GET['a'] == 'back') {
+	$_SESSION = array();
+	session_destroy();
+}
+
+// ワンタイムチケットを生成する
+$ticket = md5(uniqid(rand(), true));
+// 生成したチケットをセッション変数に保存する
+$_SESSION['ticket'] = $ticket;
+include($_SERVER['DOCUMENT_ROOT'] . '/header.html');
+
+?>
+
+
+<section>
+	<div class="contact">
+	<h2>お問い合わせ</h2>
+	<div class="leaf"><img src="/images/leaf.png"></div>
+
+<div class="askcontent">
+<form action="confirm.html" method="post" name="form">
+	<table border="1">
+		<tr><th>お名前</th><td><input type="text" name="name" value="<?=$_SESSION['name']; ?>"></td></tr>
+		<tr><th>メールアドレス</th><td><input type="text" name="email" value="<?=$_SESSION['email']; ?>"></td></tr>
+		<tr><th>お問い合わせ内容</th><td><textarea name="text"><?=$_SESSION["text"]; ?></textarea></td></tr>
+	</table>
+	<div class="submit">
+		<a href="javascript:;" onclick="formsubmit(this);" id="submit">確認する</a>
+	</div>
+	<input type="hidden" name="ticket" value="<?=$ticket; ?>">
+</form>
+</div>
+
+</div>
+</section>
+<?php include($_SERVER['DOCUMENT_ROOT'] . '/footer.html'); ?>
+</div>
+</body>
+
+<script type="text/javascript" src="/JS/top.js"></script>
+
+</html>
