@@ -1,0 +1,277 @@
+<?php
+session_start();
+
+require(__DIR__.'/config.lib');
+
+
+function db_connect(&$connection) {
+
+$connection = mysqli_connect(
+	DB_HOST,
+	DB_USER_NAME,
+	DB_USER_PASS
+);
+
+if(!$connection) {
+	die("Database Connect failed:". mysqli_connect_error());
+}
+
+$db_select = mysqli_select_db($connection, DB_NAME);
+
+if(!$db_select) {
+	die("Database selection failed:" . mysqli_error($connection));
+}
+
+mysqli_set_charset($connection, "utf8");
+
+}
+
+
+// function oneTime_ticket(&$ticket) {
+// 	$ticket = md5(uniqid(rand(), true));
+// }
+
+function get_todo(&$result) {
+	db_connect($link);
+	$query = "SELECT * FROM todo ORDER BY created_at desc";
+	$result = mysqli_query($link, $query) or die('query error'.mysqli_error($link));
+}
+
+function update_todo(&$array) {
+ if(isset($_GET)) {
+	$param = $_GET;
+}
+db_connect($link);
+
+// DBから一件のデータを抽出
+if($param['value'] == 'update') {
+	$sql = "SELECT * FROM todo WHERE id={$param['id']}";
+	$result = mysqli_query($link, $sql) or die('update error:'.mysqli_error($link));
+	// updateはwhileで回す必要なく、カラム名で出したいのでASSOCのハッシュで取ることを学んだ
+	$array = mysqli_fetch_array($result, MYSQLI_ASSOC);
+}
+}
+
+
+function delete_todo(&$sql) {
+if($_GET['value'] == 'delete') {
+	$params = $_GET;
+}
+	$sql = "DELETE FROM todo WHERE id='{$params['id']}'";
+}
+
+function regist_user(&$message) {
+	db_connect($link);
+		//regist
+if(isset($_REQUEST['regist'])) {
+	$user_id = h($_REQUEST['user_id']);
+	$password = password_hash($_REQUEST['password'],PASSWORD_BCRYPT);
+// user_idがあるか確認
+	$sql = "SELECT * from user where user_id='{$user_id}'";
+// sqlの実行
+	$query = mysqli_query($link, $sql);
+	$row = mysqli_num_rows($query);
+
+if($row > 0) {
+	$message = "既にこのユーザーIDは使用されています";
+}else{
+	$sql = "INSERT INTO user(user_id,password) VALUES (?,?)";
+	$stmt = mysqli_prepare($link, $sql);
+
+
+if(!$stmt) {
+	die('mysqli error: ' . mysqli_error($link));
+}else{
+		mysqli_stmt_bind_param($stmt, 'ss', $user_id, $password);
+}
+
+if(!mysqli_stmt_execute($stmt)) {
+	die( 'stmt error:' . mysqli_stmt_error($stmt));
+}else{
+$message = "登録完了しました。ログインフォームよりログインしてください";
+}
+
+}// if $row is 0
+}// if(isset regist
+}
+
+
+// check customer's mail
+function get_login() {
+	db_connect($link);
+	$message = "";
+if(isset($_REQUEST['login'])) {
+	$user_id = h($_REQUEST['user_id']);
+	$password = h($_REQUEST['password']); 
+	// user_idのレコードsql
+	$query = "select * from user where user_id='{$user_id}'";
+
+	$stmt = mysqli_prepare($link, $query);
+if($stmt) {
+	// $queryの実行
+	$record = mysqli_query($link, $query);
+	// user_idのデータ抽出
+	$user_data = mysqli_fetch_array($record);
+	// 入力されたpassをverifyにてhashにし、dbのhashされたpassと照合する
+if(password_verify($password,$user_data['password'])) {
+	$_SESSION['USER'] = 'user';
+	$_SESSION['login'] = 'ログイン中です';
+	header("Location: admin_page.php");
+	exit;
+}else {
+	session_destroy();
+	$message = 'wrong user id or password';
+	}
+}
+}
+}
+
+function get_all_mail(&$cnt_mail) {
+	db_connect($link);
+$sql = "SELECT * FROM contact";
+$all_mail = mysqli_query($link, $sql) or die('query error'.mysqli_error($link)); 
+$cnt_mail = mysqli_num_rows($all_mail);
+}
+
+function get_ten_list_mail(&$page, &$cnt, &$page_sum, &$result) {
+	db_connect($link);
+	get_all_mail($cnt_mail);
+
+	$perPage = 10;
+
+// 全データ/10
+$page_sum = $cnt_mail / $perPage;
+//ペーぞネーションの数
+$page_sum = ceil($page_sum);
+// pが渡って来ない=(ログイン後の状態):最大ページ数を代入
+if(isset($_GET['p'])) {
+	$page = h($_GET['p']);
+}else{
+	$page = $page_sum;
+}
+
+
+
+$offset = ($page -1) * $perPage;
+
+// for文で表示させる10件 パラメータ$pageの取得でoffset
+$sql = <<<DOC_END
+
+SELECT 
+	*, date_format(created_at, '%Y/%m/%d/%H:%i')
+AS
+	contact_day
+FROM 
+	contact
+ORDER BY
+	created_at asc 
+LIMIT
+	$perPage
+OFFSET
+	$offset
+
+DOC_END;
+
+$result = mysqli_query($link, $sql) or die('query error'.mysqli_error($link)); 
+
+// "SELECT * FROM contact ORDER BY created_at asc LIMIT {$perPage} OFFSET {$offset}";
+
+$cnt = mysqli_num_rows($result);
+}
+
+
+
+
+// function get_list_mail(&$sql) {
+
+// $page = h($_GET['p']);
+// $perPage = 10;
+// $offset = ($page -1) * $perPage;
+
+// $sql = <<<DOC_END
+// select
+// 	*, date_format(created_at, '%Y/%m/%d/%H:%i')
+// as 
+// 	contact_day 
+// from
+// 	contact
+// order by
+// 	created_at desc
+// DOC_END;
+// }
+
+function h($str) {
+	return htmlspecialchars($str,ENT_QUOTES, "UTF-8");
+}
+
+function checkempty($param, $name) {
+if($param == "") {
+		$message = $name."を入力して下さい";
+	}
+}
+
+function error_chk() {
+$error_message = "";
+$error_message .= checkempty($params['name'], "お名前");
+$error_message .= checkempty($params['email'], "メールアドレス");
+$error_message .= checkempty($params['text'], "お問い合わせ内容");
+
+if($error_message != "") {
+	while($error_message) {
+	echo $error_message;
+	}
+ }
+}
+
+// mail to customer
+function mail_to_customer() {
+
+db_connect($link);
+
+$name = h($_POST['name']);
+$email = h($_POST['email']);
+$text = h($_POST['text']);
+$title = "お問い合わせありがとうございます。";
+$mail_text .= "この度はお問い合わせ頂き誠にありがとうございます。
+下記の内容でお問い合わせを受け付けました。\n\n";
+$mail_text .= "------------------------------------\n";
+$mail_text .= "お問い合わせ日時：" . date("Y-m-d") . "\n";
+$mail_text .= "氏名：" . $name ."様\n";
+$mail_text .= "メールアドレス\n" . $email . "\n";
+$mail_text .= "お問い合わせ内容：" . $text . "\n";
+
+$headers = <<<EOD
+From: coffee@co.jp
+Return-Path: coffee@co.jp
+Content-Type: text/plain;charset=ISO-2022-JP
+EOD;
+// mail to owner
+$owner_title = "お客様よりお問い合わせがありました";
+$owner = "yuri715lily_momo@yahoo.co.jp";
+$owner_text .= "下記の内容でお問い合わせがありました。\n";
+$owner_text .= "------------------------------------\n";
+$owner_text .= "お問い合わせ日時：" . date("Y-m-d") . "\n";
+$owner_text .= "氏名：" . $name ."様\n";
+$owner_text .= "メールアドレス\n" . $email . "\n";
+$owner_text .= "お問い合わせ内容：" . $text . "\n";
+
+$query = "INSERT INTO contact(name,email,text) VALUES (?,?,?)";
+$stmt = mysqli_prepare($link, $query);
+if(!$stmt) {
+	die('mysqli error: ' . mysqli_error($link));
+}
+mysqli_stmt_bind_param($stmt, 'sss', $name, $email, $text);
+
+if(!mysqli_stmt_execute($stmt)) {
+	die( 'stmt error:' . mysqli_stmt_error($stmt));
+}else{
+	$mail = mb_send_mail($email, $title, $mail_text, $headers);
+	// ownerへも連絡
+	mb_send_mail($owner, $owner_title, $owner_text, $headers);
+if(!$mail) {
+	die('failed');
+	}
+}
+}
+?>
+
