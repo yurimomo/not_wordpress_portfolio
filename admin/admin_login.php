@@ -5,7 +5,7 @@ require(__DIR__ .'../../library/common.lib');
 
 db_connect($link);
 
-get_login();
+get_login($message);
 
 ?>
 

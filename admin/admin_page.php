@@ -23,11 +23,12 @@ get_all_mail($cnt_mail);
 
 get_ten_list_mail($page, $cnt, $page_sum, $result);
 
+// pagenation用
+$range = 3;
+
 mysqli_close($link);
 
 ?>
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -39,7 +40,6 @@ mysqli_close($link);
 <title>管理者ページ</title>
 </head>
 <body>
-	<p style="color: red"><?php echo $_SESSION['login']; ?></p>
 
 <div class="container">
 	<div class="wrapper">
@@ -59,15 +59,12 @@ while($array = mysqli_fetch_array($result, MYSQLI_BOTH)) {
 
 <table border="1">
 	<?php 
-	$th = array('No','お名前', 'メールアドレス', 'お問い合わせ内容', '受信時間');
+	echo "<tr><th>id</th><th class='kokyaku_name'>お名前</th><th class='email'>メールアドレス</th><th>お問い合わせ内容</th><th class='contact_time'>問い合わせ時間</th></tr>";
 
-	for($x = 0; $x < count($th); $x++) { 
-		echo "<th>".$th[$x]."</th>";
-	}
 	for($i = 1; $i <= $cnt; $i++) {
 		echo "<tr><td>".
 		$result_array[$i]['ID']."</td><td>".
-		$result_array[$i]['name']."</td><td>".
+		$result_array[$i]['name']."</td><td class='email'>".
 		$result_array[$i]['email']."</td><td>".
 		$result_array[$i]['text']."</td><td>".
 		$result_array[$i]['contact_day']."</td>
@@ -76,16 +73,45 @@ while($array = mysqli_fetch_array($result, MYSQLI_BOTH)) {
 ?>
 </table>
 <div class='page_nation_box'>
-<!-- page nation --> 
+<!-- page nation  -->
+
+<!-- 前へ -->
+<?php if($page > 1) : ?>
+	<a class='page_back' href="admin_page.php?p=<?php echo ($page - 1); ?>">前へ</a>
+<?php endif; ?>
+
+<!-- 前に3ページ表示 -->
+<?php for($i = $range; $i > 0; $i--) : ?>
+<?php if ($page - $i < 1) continue; ?>
+<a  class='page_nation' href="admin_page.php?p=<?php echo ($page - $i); ?>">
+	<?php echo ($page - $i); ?></a>
+<?php endfor; ?>
+
+
+<!-- 今のページにcurrent css -->
+
 <?php
 for($i = 1; $i <= $page_sum; $i++) {
 	if($page == $i) {
-	echo "<a href='admin_page.php?p={$i}' class='page_nation page_current'>{$i}</a>";
-	}else{
-	echo "<a href='admin_page.php?p={$i}' class='page_nation'>{$i}</a>";
-}
+ 	echo "<a href='admin_page.php?p={$i}' class='page_nation page_current'>{$i}</a>";
+ }
 }
 ?>
+
+<!-- 後ろに3ページ表示 -->
+
+<?php for($i = 1; $i <= $range; $i++) : ?>
+	<?php if($page + $i > $page_sum) break; ?>
+	<a class='page_nation' href="admin_page.php?p=<?php echo ($page + $i); ?>">
+		<?php echo ($page + $i); ?>
+	</a>
+<?php endfor; ?>
+
+<!-- 次へ -->
+<?php if($page < $page_sum) : ?>
+	<a class='page_ahead' href="admin_page.php?p=<?php echo ($page + 1); ?>">次へ</a>
+<?php endif; ?>
+
 </div>
 </div>
 </body>
